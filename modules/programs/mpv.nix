@@ -46,7 +46,7 @@ let
     (mapAttrsToList (name: value: "${name} ${value}") bindings);
 
   mpvPackage = if cfg.scripts == [ ] then
-    pkgs.mpv
+    cfg.package
   else
     pkgs.wrapMpv pkgs.mpv-unwrapped { scripts = cfg.scripts; };
 
@@ -57,7 +57,18 @@ in {
 
       package = mkOption {
         type = types.package;
+        default = pkgs.mpv;
+        example = literalExample
+          "pkgs.wrapMpv (pkgs.mpv-unwrapped.override { vapoursynthSupport = true; }) { youtubeSupport = true; }";
+        description = ''
+          Package providing mpv.
+        '';
+      };
+
+      finalPackage = mkOption {
+        type = types.package;
         readOnly = true;
+        visible = false;
         description = ''
           Resulting mpv package.
         '';
@@ -87,7 +98,7 @@ in {
         example = literalExample ''
           {
             profile = "gpu-hq";
-            force-window = "yes";
+            force-window = true;
             ytdl-format = "bestvideo+bestaudio";
             cache-default = 4000000;
           }
@@ -140,8 +151,15 @@ in {
 
   config = mkIf cfg.enable (mkMerge [
     {
+      assertions = [{
+        assertion = (cfg.scripts == [ ]) || (cfg.package == pkgs.mpv);
+        message = ''
+          The programs.mpv "package" option is mutually exclusive with "scripts" option.'';
+      }];
+    }
+    {
       home.packages = [ mpvPackage ];
-      programs.mpv.package = mpvPackage;
+      programs.mpv.finalPackage = mpvPackage;
     }
     (mkIf (cfg.config != { } || cfg.profiles != { }) {
       xdg.configFile."mpv/mpv.conf".text = ''
@@ -154,5 +172,5 @@ in {
     })
   ]);
 
-  meta.maintainers = with maintainers; [ tadeokondrak ];
+  meta.maintainers = with maintainers; [ tadeokondrak thiagokokada ];
 }
