@@ -97,6 +97,7 @@ import nmt {
     ./modules/services/fluidsynth
     ./modules/services/kanshi
     ./modules/services/lieer
+    ./modules/services/redshift-gammastep
     ./modules/services/polybar
     ./modules/services/sxhkd
     ./modules/services/window-managers/i3
